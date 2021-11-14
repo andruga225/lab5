@@ -28,6 +28,74 @@ double diff(double x)
 		return 2 * exp(x) - 5;
 }
 
+double phi0(double tau)
+{
+	return (1 + 2 * tau) * pow(1 - tau, 2);
+}
+
+double phi1(double tau)
+{
+	return tau * pow(1 - tau, 2);
+}
+
+vector<double> sqrtMethod(vector<vector<double>> a, vector<double> b)
+{
+	vector<vector<double>> S(a.size(), (vector<double>(a.size())));
+	vector<vector<double>> d(a.size(), (vector<double>(b.size())));
+
+
+	for (int i = 0; i < S.size(); ++i)
+	{
+		double sum = 0;
+
+		for (int k = 0; k < i; ++k)
+			sum += S[k][i] * S[k][i] * d[k][k];
+
+		d[i][i] = copysign(1.0, a[i][i] - sum);
+		S[i][i] = sqrt(a[i][i] - sum);
+
+		double temp = 1 / (S[i][i] * d[i][i]);
+
+		for (int j = i + 1; j < S.size(); ++j)
+		{
+			sum = 0;
+
+			for (int k = 0; k < i; ++k)
+				sum += S[k][i] * S[k][j] * d[k][k];
+
+			S[i][j] = (a[i][j] - sum) * temp;
+		}
+
+	}
+
+	vector<double> y(b.size());
+	vector<double> x(b.size());
+
+	y[0] = b[0] / (S[0][0] * d[0][0]);
+
+	for (int i = 1; i < b.size(); ++i)
+	{
+		double sum = 0;
+		for (int j = 0; j < i; ++j)
+			sum += S[j][i] * y[j] * d[j][j];
+
+		y[i] = (b[i] - sum) / (S[i][i] * d[i][i]);
+	}
+
+	x[b.size() - 1] = y[b.size() - 1] / S[b.size() - 1][b.size() - 1];
+
+	for (int i = x.size() - 2; i > -1; --i)
+	{
+		double sum = 0;
+		for (int j = i; j < x.size(); ++j)
+			sum += S[i][j] * x[j];
+
+		x[i] = (y[i] - sum) / S[i][i];
+	}
+
+	return x;
+}
+
 vector<vector<double>> SplitDifTable()
 {
 	vector<vector<double>> res(n + 1, (vector<double>(n + 2)));
@@ -120,6 +188,83 @@ void cubicSplain(vector<vector<double>> difTable)
 
 		cout << fixed << setprecision(1) << x << " " << setprecision(6) << diff(x) << " " << m[i] << " " << abs(diff(x) - m[i]) << " " << M5 / 60 * pow(h, 4) << endl;
 	}
+
+	double tau = 0.5;//(x-xi)/h const in the fact
+
+	for(int i=0;i<n;++i)
+	{
+		double x = x0 + (i + 0.5) * h;
+		double s = phi0(tau) * difTable[i][1] + phi0(1 - tau) * difTable[i+1][1] + h * (phi1(tau) * m[i] - phi1(1 - tau) * m[i + 1]);
+
+		cout << fixed << setprecision(2) << x << " " << setprecision(6) << f(x) << " " << s << " " << abs(f(x) - s) << " " << (M4/384+M5*h/240)*pow(h,4) << '\n';
+	}
+}
+
+void DiscreteRMS(vector<vector<double>> difTable)
+{
+	vector<vector<double>> a(3, vector<double>(3));
+
+	for(int i=0;i<n;++i)
+	{
+		a[0][0]++;
+		a[0][1] += difTable[i][0];
+		a[0][2] += pow(difTable[i][0], 2);
+		a[1][2] += pow(difTable[i][0], 3);
+		a[2][2] += pow(difTable[i][0], 4);
+	}
+
+	a[1][0] = a[0][1];
+	a[1][1] = a[0][2];
+	a[2][0] = a[0][2];
+	a[2][1] = a[1][2];
+
+	cout << "Матрица\n";
+
+	for(int i=0;i<a.size();++i)
+	{
+		for (int j = 0; j < a[i].size(); ++j)
+			cout << fixed << setprecision(6) << a[i][j] << " ";
+		cout << '\n';
+	}
+
+	vector<double> b(3);
+
+	for(int i=0;i<n;++i)
+	{
+		b[0] += f(difTable[i][0]);
+		b[1] += f(difTable[i][0]) * difTable[i][0];
+		b[2] += f(difTable[i][0]) * difTable[i][0] * difTable[i][0];
+	}
+
+	cout << "Вектор правых частей\n";
+
+	for (int i = 0; i < b.size(); ++i)
+		cout << fixed << setprecision(6) << b[i] << " ";
+
+	cout << '\n';
+
+	vector<double> solvedX = sqrtMethod(a, b);
+
+	//У меня сошлось с графиками
+	cout << fixed << setprecision(5) << "P2(x)= " << solvedX[0] << " +(" << solvedX[1] << "*x) + (" << solvedX[2] << "*x^2)\n";
+
+	double normF = 0;
+	double normG = 0;
+
+	for(int i=0;i<n;++i)
+	{
+		normF += pow(difTable[i][1], 2);
+		normG += pow(solvedX[0] + solvedX[1] * difTable[i][0] + solvedX[2] * pow(difTable[i][0], 2), 2);
+	}
+
+	cout << "Error= " << fixed << scientific << sqrt(normF - normG)<<'\n';
+
+	for(int i=0;i<n;++i)
+	{
+		double x = x0 + i * h;
+
+		cout <<fixed<<setprecision(2)<< x << " " << fixed << setprecision(15) << f(x) - (solvedX[0] + solvedX[1] * x + solvedX[2] * x * x) << '\n';
+	}
 }
 
 int main()
@@ -128,6 +273,7 @@ int main()
 
 	NewtonMethod(difTable);
 	cubicSplain(difTable);
+	DiscreteRMS(difTable);
 
 }
 
