@@ -257,13 +257,78 @@ void DiscreteRMS(vector<vector<double>> difTable)
 		normG += pow(solvedX[0] + solvedX[1] * difTable[i][0] + solvedX[2] * pow(difTable[i][0], 2), 2);
 	}
 
-	cout << "Error= " << fixed << scientific << sqrt(normF - normG)<<'\n';
+	cout << "Error= " << fixed << scientific << sqrt(abs(normF - normG))<<'\n';
 
 	for(int i=0;i<n;++i)
 	{
 		double x = x0 + i * h;
 
 		cout <<fixed<<setprecision(2)<< x << " " << fixed << setprecision(15) << f(x) - (solvedX[0] + solvedX[1] * x + solvedX[2] * x * x) << '\n';
+	}
+}
+
+void IntegretedRMS(vector<vector<double>> difTable)
+{
+	vector<vector<double>> a(3, (vector<double>(3)));
+
+	/*Тут хитрый алгоритм какой - то, чуть раздуплил
+	 * У нас есть полином второй степени, то есть 1 x x^2
+	 * Считаем интегралы от 1 до 2 всех парных комбинаций типа g1*g1 g1*g2 g1*g3 g2*g1 g2*g2 ...
+	 * И соответсвенно результат сюда вносим
+	 */
+	a[0][0] = 1;
+	a[0][1] = a[1][0] = 3 / 2.;
+	a[0][2] = a[1][1] = a[0][2] = 7 / 3.;
+	a[1][2]=a[2][1] = 15 / 4.;
+	a[2][2] = 31 / 5.;
+
+	for (int i = 0; i < a.size(); ++i)
+	{
+		for (int j = 0; j < a[i].size(); ++j)
+			cout << fixed << setprecision(6) << a[i][j] << " ";
+		cout << '\n';
+	}
+
+	vector<double> b(3);
+
+	/* Тут тоже самое почти, только мы умножаем нашу f на g => f*g1, f*g2, f*g3
+	 * От этого всего интеграл берем от 1 до 2
+	 * Значения готовы
+	 */
+
+	if(variant==4)
+	{
+		b[0] = 2 * exp(2)- 2 * exp(1) - 15 / 2.;
+		b[1] = 2 * exp(2) - 35 / 3.;
+		b[2] = 4 * exp(2) - 2 * exp(1) - 75 / 4.;
+	}
+
+	for (int i = 0; i < b.size(); ++i)
+		cout << fixed << setprecision(6) << b[i] << " ";
+
+	cout << '\n';
+
+	vector<double> solvedX = sqrtMethod(a, b);
+
+	//У меня сошлось с графиками
+	cout << fixed << setprecision(5) << "P2(x)= " << solvedX[0] << " +(" << solvedX[1] << "*x) + (" << solvedX[2] << "*x^2)\n";
+
+	double normF = 0;
+	double normG = 0;
+
+	for (int i = 0; i < n; ++i)
+	{
+		normF += pow(difTable[i][1], 2);
+		normG += pow(solvedX[0] + solvedX[1] * difTable[i][0] + solvedX[2] * pow(difTable[i][0], 2), 2);
+	}
+
+	cout << "Error= " << fixed << scientific << sqrt(abs(normF - normG)) << '\n';
+
+	for (int i = 0; i < n; ++i)
+	{
+		double x = x0 + i * h;
+
+		cout << fixed << setprecision(2) << x << " " << fixed << setprecision(15) << f(x) - (solvedX[0] + solvedX[1] * x + solvedX[2] * x * x) << '\n';
 	}
 }
 
@@ -274,6 +339,7 @@ int main()
 	NewtonMethod(difTable);
 	cubicSplain(difTable);
 	DiscreteRMS(difTable);
+	IntegretedRMS(difTable);
 
 }
 
