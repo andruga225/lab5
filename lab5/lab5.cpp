@@ -28,6 +28,7 @@ double diff(double x)
 		return 2 * exp(x) - 5;
 }
 
+
 double phi0(double tau)
 {
 	return (1 + 2 * tau) * pow(1 - tau, 2);
@@ -109,6 +110,27 @@ vector<vector<double>> SplitDifTable()
 
 	for(int i=2;i<=res.size();++i)
 		for(int j=0;j<=res.size()-i;++j)
+		{
+			res[j][i] = (res[j + 1][i - 1] - res[j][i - 1]) / (res[i + j - 1][0] - res[j][0]);
+		}
+
+	return res;
+}
+
+
+vector<vector<double>> SplitDifTable2()
+{
+	vector<vector<double>> res(n + 1, (vector<double>(n + 2)));
+
+	for (int i = 0; i < res.size(); ++i)
+	{
+		double x = x0 + i * h;
+		res[i][0] = f(x);
+		res[i][1] = x;
+	}
+
+	for (int i = 2; i <= res.size(); ++i)
+		for (int j = 0; j <= res.size() - i; ++j)
 		{
 			res[j][i] = (res[j + 1][i - 1] - res[j][i - 1]) / (res[i + j - 1][0] - res[j][0]);
 		}
@@ -332,14 +354,84 @@ void IntegretedRMS(vector<vector<double>> difTable)
 	}
 }
 
+
+double FindRoot(double A) 
+{
+	double a = x0;
+	double b = xn;
+	double c;
+	while (abs((b - a) / 2) > eps) {
+		c = (a + b) / 2;
+		if (((diff(a) - A) * (diff(c) - A)) > 0) a = c;
+		else b = c;
+	}
+	return c;
+}
+
+
+void Poli_one()
+{
+	double a0, a1, d;
+	a1 = (f(xn) - f(x0)) / (xn - x0);
+	d = FindRoot(a1);
+	a0 = (f(x0) + f(d) - a1 * (x0 + d)) / 2;
+
+	cout << "P1(x) = " << fixed << setprecision(4) << a0 << " + " << a1 << " * x,		d = "<<d<<endl;
+	cout << "L(a) = " << f(x0) - (a0 + a1 * x0) << endl;
+	cout << "L(d) = " << f(d) - (a0 + a1 * d) << endl;
+	cout << "L(b) = " << f(xn) - (a0 + a1 * xn) << endl;
+
+	cout << setw(4) << 'X' <<setw(19)<< "Погрешность" << endl;
+	for (int i = 0; i < 6; i++)
+	{
+		cout <<setw(4)<<setprecision(1)<< x0 + i * 0.2 <<"     "<<setprecision(15)<<setw(17)<< f(x0 + i * 0.2) - (a0 + a1 * (x0 + i * 0.2)) << endl;
+	}
+}
+
+void opposite_RMS()
+{
+	vector<vector<double>> dif_matr(n + 1, (vector<double>(n + 2)));// = SplitDifTable2();
+
+	dif_matr[0] = { -5.5,1,0.115128,-0.002974,0.000047,0.000001,0.0 };
+	dif_matr[1] = { -3.76281,1.2,0.104257,-0.002701,0.000052,0.0,0.0 };
+	dif_matr[2] = { -1.84446,1.4,0.093283,-0.002367,0.00005,0.0,0.0 };
+	dif_matr[3] = { 0.29955, 1.6, 0.082470, -0.002001, 0.0, 0.0, 0.0 };
+	dif_matr[4] = { 2.72467, 1.8, 0.072064, 0.0, 0.0, 0.0, 0.0 };
+	dif_matr[5] = { 5.5, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+	for (int i = 0; i < dif_matr.size(); i++)
+	{
+		for (int j = 0; j <dif_matr[i].size(); j++)
+		{
+			cout <<fixed<<setprecision(5)<<setw(10)<< dif_matr[i][j] << " ";
+		}
+		cout << endl;
+	}
+	double C = 11.5;
+	cout << "C = " << C<<endl;
+
+
+	double w = 1;
+	double answ = dif_matr[0][1];
+	for (int i = 1; i < n + 1; i++)
+	{
+		w *= (C - f(x0+i*0.5));
+		answ += w * dif_matr[i + 1][0];
+	}
+
+	cout << "Корень: " << answ << endl;
+	//cout << "Невязка " << f(answ) - C;
+}
+
 int main()
 {
-	auto difTable = SplitDifTable();
+	/*auto difTable = SplitDifTable();
 
 	NewtonMethod(difTable);
 	cubicSplain(difTable);
 	DiscreteRMS(difTable);
-	IntegretedRMS(difTable);
+	IntegretedRMS(difTable);*/
+	//Poli_one();
+	opposite_RMS();
 
 }
 
