@@ -9,7 +9,7 @@
 
 using namespace std;
 
-int variant = 4;
+int variant = 17;
 int x0 = 1;
 int xn = 2;
 int n = 5;
@@ -19,13 +19,14 @@ double f(double x)
 {
 	if (variant == 4)
 		return 2 * exp(x) - 5 * x;
-		//return pow(3, x) - 2 * x + 5;
+	return exp(x) + x + 1;
 }
 
 double diff(double x)
 {
 	if (variant == 4)
 		return 2 * exp(x) - 5;
+	return exp(x) + 1;
 }
 
 
@@ -390,14 +391,8 @@ void Poli_one()
 
 void opposite_RMS()
 {
-	vector<vector<double>> dif_matr(n + 1, (vector<double>(n + 2)));// = SplitDifTable2();
+	vector<vector<double>> dif_matr = SplitDifTable2();
 
-	dif_matr[0] = { -5.5,1,0.115128,-0.002974,0.000047,0.000001,0.0 };
-	dif_matr[1] = { -3.76281,1.2,0.104257,-0.002701,0.000052,0.0,0.0 };
-	dif_matr[2] = { -1.84446,1.4,0.093283,-0.002367,0.00005,0.0,0.0 };
-	dif_matr[3] = { 0.29955, 1.6, 0.082470, -0.002001, 0.0, 0.0, 0.0 };
-	dif_matr[4] = { 2.72467, 1.8, 0.072064, 0.0, 0.0, 0.0, 0.0 };
-	dif_matr[5] = { 5.5, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 	for (int i = 0; i < dif_matr.size(); i++)
 	{
 		for (int j = 0; j <dif_matr[i].size(); j++)
@@ -406,7 +401,7 @@ void opposite_RMS()
 		}
 		cout << endl;
 	}
-	double C = 11.5;
+	double C = (f(x0)+f(xn))/2;
 	cout << "C = " << C<<endl;
 
 
@@ -414,12 +409,12 @@ void opposite_RMS()
 	double answ = dif_matr[0][1];
 	for (int i = 1; i < n + 1; i++)
 	{
-		w *= (C - f(x0+i*0.5));
-		answ += w * dif_matr[i + 1][0];
+		w *= (C - dif_matr[i-1][0]);
+		answ += w * dif_matr[0][i+1];
 	}
 
-	cout << "Корень: " << answ << endl;
-	//cout << "Невязка " << f(answ) - C;
+	cout <<setprecision(15)<< "Корень: " << answ << endl;
+	cout << "Невязка " << scientific<< abs(f(answ) - C);
 }
 
 int main()
