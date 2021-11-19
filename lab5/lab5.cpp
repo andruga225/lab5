@@ -9,7 +9,7 @@
 
 using namespace std;
 
-int variant = 17;
+int variant = 4;
 int x0 = 1;
 int xn = 2;
 int n = 5;
@@ -336,13 +336,17 @@ void IntegretedRMS(vector<vector<double>> difTable)
 	//У меня сошлось с графиками
 	cout << fixed << setprecision(5) << "P2(x)= " << solvedX[0] << " +(" << solvedX[1] << "*x) + (" << solvedX[2] << "*x^2)\n";
 
-	double normF = 0;
-	double normG = 0;
+	/*
+	 * Тут руками надо считать int(f^2)-int(P2(x)^2)
+	 * а после корень из этого взять
+	 */
+	double normF;
+	double normG;
 
-	for (int i = 0; i < n; ++i)
+	if (variant == 4)
 	{
-		normF += pow(difTable[i][1], 2);
-		normG += pow(solvedX[0] + solvedX[1] * difTable[i][0] + solvedX[2] * pow(difTable[i][0], 2), 2);
+		normF = (6*exp(4)-66*exp(2)+175)/3.;
+		normG = 745438076087 /150000000000.;
 	}
 
 	cout << "Error= " << fixed << scientific << sqrt(abs(normF - normG)) << '\n';
@@ -419,13 +423,13 @@ void opposite_RMS()
 
 int main()
 {
-	/*auto difTable = SplitDifTable();
+	auto difTable = SplitDifTable();
 
 	NewtonMethod(difTable);
 	cubicSplain(difTable);
 	DiscreteRMS(difTable);
-	IntegretedRMS(difTable);*/
-	//Poli_one();
+	IntegretedRMS(difTable);
+	Poli_one();
 	opposite_RMS();
 
 }
