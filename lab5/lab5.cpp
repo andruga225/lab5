@@ -9,7 +9,7 @@
 
 using namespace std;
 
-int variant = 4;
+int variant = 17;
 int x0 = 1;
 int xn = 2;
 int n = 5;
@@ -150,7 +150,8 @@ void NewtonMethod(vector<vector<double>> difTable)
 
 	if (variant == 4)
 		M6 = 2 * exp(2);
-		//M6 = 9 * pow(log(3), 6);
+	else
+		M6 = exp(2);
 
 	cout << "M6=" << fixed << setprecision(7) <<M6<< '\n';
 
@@ -200,6 +201,10 @@ void cubicSplain(vector<vector<double>> difTable)
 	if(variant==4)
 	{
 		M4 = M5 = 2 * exp(2);
+	}
+	else
+	{
+		M4 = M5 = exp(2);
 	}
 
 	cout << "M5=" << fixed << setprecision(7) << M5 << '\n';
@@ -325,7 +330,12 @@ void IntegretedRMS(vector<vector<double>> difTable)
 		b[1] = 2 * exp(2) - 35 / 3.;
 		b[2] = 4 * exp(2) - 2 * exp(1) - 75 / 4.;
 	}
-
+	else
+	{
+		b[0] = exp(2) - exp(1) - 5/2;
+		b[1] = exp(2) + 23 / 6;
+		b[2] = 2 * exp(2) + 73 / 12 - exp(1);
+	}
 	for (int i = 0; i < b.size(); ++i)
 		cout << fixed << setprecision(6) << b[i] << " ";
 
@@ -348,6 +358,11 @@ void IntegretedRMS(vector<vector<double>> difTable)
 		normF = (6*exp(4)-66*exp(2)+175)/3.;
 		normG = 745438076087 /150000000000.;
 	}
+	else
+	{
+		normF = 54.05754;
+		normG = 53.88602;
+	}
 
 	cout << "Error= " << fixed << scientific << sqrt(abs(normF - normG)) << '\n';
 
@@ -360,7 +375,7 @@ void IntegretedRMS(vector<vector<double>> difTable)
 }
 
 
-double FindRoot(double A) 
+double FindRoot(double A) //метод половинного деления
 {
 	double a = x0;
 	double b = xn;
@@ -374,7 +389,7 @@ double FindRoot(double A)
 }
 
 
-void Poli_one()
+void Poli_one() // равномерное приближение полиномом 1 порядка
 {
 	double a0, a1, d;
 	a1 = (f(xn) - f(x0)) / (xn - x0);
@@ -393,19 +408,22 @@ void Poli_one()
 	}
 }
 
-void opposite_RMS()
+void opposite_RMS() // обратное интерполированние
 {
 	vector<vector<double>> dif_matr = SplitDifTable2();
+	double C = (f(x0) + f(xn)) / 2;
 
 	for (int i = 0; i < dif_matr.size(); i++)
 	{
 		for (int j = 0; j <dif_matr[i].size(); j++)
 		{
-			cout <<fixed<<setprecision(5)<<setw(10)<< dif_matr[i][j] << " ";
+			if(j==0)
+				cout <<fixed<<setprecision(5)<<setw(10)<< dif_matr[i][j] - C << " ";
+			else
+				cout << fixed << setprecision(5) << setw(10) << dif_matr[i][j] << " ";
 		}
 		cout << endl;
 	}
-	double C = (f(x0)+f(xn))/2;
 	cout << "C = " << C<<endl;
 
 
