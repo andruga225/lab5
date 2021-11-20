@@ -413,12 +413,13 @@ void opposite_RMS() // обратное интерполированние
 	vector<vector<double>> dif_matr = SplitDifTable2();
 	double C = (f(x0) + f(xn)) / 2;
 
+	cout << setw(10)<<"y-c" <<setw(10)<<"y" << setw(10) << "x"<< endl;
 	for (int i = 0; i < dif_matr.size(); i++)
 	{
 		for (int j = 0; j <dif_matr[i].size(); j++)
 		{
 			if(j==0)
-				cout <<fixed<<setprecision(5)<<setw(10)<< dif_matr[i][j] - C << " ";
+				cout <<fixed<<setprecision(5)<<setw(10)<< dif_matr[i][j] - C <<"	"<< dif_matr[i][j] << " ";
 			else
 				cout << fixed << setprecision(5) << setw(10) << dif_matr[i][j] << " ";
 		}
