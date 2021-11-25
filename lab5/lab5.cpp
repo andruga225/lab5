@@ -405,7 +405,7 @@ void opposite_RMS()
 		}
 		cout << endl;
 	}
-	double C = (f(x0)+f(xn))/2;
+	double C = (f(x0)+f(xn))/2.;
 	cout << "C = " << C<<endl;
 
 
@@ -413,7 +413,7 @@ void opposite_RMS()
 	double answ = dif_matr[0][1];
 	for (int i = 1; i < n + 1; i++)
 	{
-		w *= (C - dif_matr[i-1][0]);
+		w *= C - dif_matr[i - 1][0];
 		answ += w * dif_matr[0][i+1];
 	}
 
@@ -425,11 +425,11 @@ int main()
 {
 	auto difTable = SplitDifTable();
 
-	NewtonMethod(difTable);
+	/*NewtonMethod(difTable);
 	cubicSplain(difTable);
 	DiscreteRMS(difTable);
 	IntegretedRMS(difTable);
-	Poli_one();
+	Poli_one();*/
 	opposite_RMS();
 
 }
